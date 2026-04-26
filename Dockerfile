@@ -1,0 +1,18 @@
+FROM node:20-alpine
+
+WORKDIR /app
+RUN apk add --no-cache openssl
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+RUN npm run build
+
+EXPOSE 8080
+ENV PORT=8080
+
+CMD ["sh", "-c", "npx prisma db push && npm start"]
+
+RUN npx prisma generate
