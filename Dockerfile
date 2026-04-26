@@ -1,26 +1,38 @@
+# ---------- BUILD STAGE ----------
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+RUN apk add --no-cache openssl
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+RUN npx prisma generate
+RUN npm run build
+
+# ---------- RUNTIME STAGE ----------
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Dependência necessária pro Prisma
 RUN apk add --no-cache openssl
 
-# Instala dependências
+# Só dependências de produção
 COPY package*.json ./
-RUN npm install
+RUN npm install --omit=dev
 
-# Copia projeto
-COPY . .
+# Copia build e prisma
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/package.json ./package.json
 
-# Gera Prisma Client
-RUN npx prisma generate
-
-# Build do Next
-RUN npm run build
-
-# Porta correta do Next.js
 EXPOSE 3000
 ENV PORT=3000
 
-# Start limpo (SEM db push aqui)
 CMD ["npm", "run", "start"]
