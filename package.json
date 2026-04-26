@@ -3,17 +3,26 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "prisma:generate": "npx prisma generate",
-    "db:push": "npx prisma db push",
-    "db:seed": "node prisma/seed.js",
-    "setup": "npx prisma generate && npx prisma db push",
-    "worker": "node worker/expire-entitlements.js",
-    "postinstall": "echo skip"
-  },
+  "dev": "next dev",
+
+  "build": "next build",
+
+  "start": "npx prisma db push && next start",
+
+  "lint": "next lint",
+
+  "prisma:generate": "prisma generate",
+
+  "db:push": "prisma db push",
+
+  "db:seed": "node prisma/seed.js",
+
+  "setup": "prisma generate && prisma db push",
+
+  "worker": "node worker/expire-entitlements.js",
+
+  "postinstall": "echo skip"
+},
   "dependencies": {
     "@prisma/client": "^5.20.0",
     "bcryptjs": "^2.4.3",
