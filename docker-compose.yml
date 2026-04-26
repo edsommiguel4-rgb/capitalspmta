@@ -1,6 +1,9 @@
+version: '3.8'
+
 services:
   db:
     image: postgres:16-alpine
+    restart: always
     environment:
       POSTGRES_USER: panel
       POSTGRES_PASSWORD: panel
@@ -30,7 +33,7 @@ services:
       MTA_API_TOKEN: change-me
     ports:
       - "3000:3000"
-    command: sh -c "npm run db:push && npm run db:seed && npm run start"
+    command: sh -c "npx wait-port db:5432 && npx prisma generate && npx prisma db push && npx prisma db seed && npm run start"
 
   worker:
     build: .
@@ -39,7 +42,7 @@ services:
     environment:
       NODE_ENV: production
       DATABASE_URL: postgresql://panel:panel@db:5432/panel
-    command: sh -c "npm run db:push && npm run worker"
+    command: sh -c "npx wait-port db:5432 && npx prisma generate && npx prisma db push && npm run worker"
 
 volumes:
   db_data:
