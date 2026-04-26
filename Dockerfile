@@ -2,17 +2,25 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+# Dependência necessária pro Prisma
 RUN apk add --no-cache openssl
 
+# Instala dependências
 COPY package*.json ./
 RUN npm install
 
+# Copia projeto
 COPY . .
 
+# Gera Prisma Client
 RUN npx prisma generate
+
+# Build do Next
 RUN npm run build
 
-EXPOSE 8080
-ENV PORT=8080
+# Porta correta do Next.js
+EXPOSE 3000
+ENV PORT=3000
 
-CMD ["sh", "-c", "npx prisma db push && npm start"]
+# Start limpo (SEM db push aqui)
+CMD ["npm", "run", "start"]
