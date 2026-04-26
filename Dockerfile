@@ -35,4 +35,4 @@ COPY --from=builder /app/package.json ./package.json
 EXPOSE 3000
 ENV PORT=3000
 
-CMD ["npm", "run", "start"]
+CMD ["sh", "-c", "npx prisma generate && npx prisma db push && node prisma/seed.js && npx next start -p 3000"]
