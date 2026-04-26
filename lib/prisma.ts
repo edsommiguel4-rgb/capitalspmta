@@ -1,24 +1,14 @@
-// Usa Prisma Client correto conforme o DATABASE_URL:
-// - file:... => SQLite (local)
-// - caso contrário => Postgres (produção)
-// Import dinâmico porque geramos dois clients com outputs diferentes.
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { PrismaClient } = (() => {
-  const url = (process.env.DATABASE_URL || "").trim();
-  const isSqlite = !url || url.startsWith("file:") || url.startsWith("sqlite:");
-  // eslint-disable-next-line global-require, import/no-dynamic-require
-  return isSqlite ? require("../prisma/generated/sqlite") : require("../prisma/generated/postgres");
-})();
+import { PrismaClient } from "@prisma/client";
+import { ensureDb } from "./db-init";
 
-declare global {
-  // eslint-disable-next-line no-var
-  var prisma: InstanceType<typeof PrismaClient> | undefined;
-}
+ensureDb(); // 🔥 FORÇA criar as tabelas
+
+const globalForPrisma = global as unknown as {
+  prisma: PrismaClient;
+};
 
 export const prisma =
-  global.prisma ||
-  new PrismaClient({
-    log: ["error", "warn"],
-  });
+  globalForPrisma.prisma ||
+  new PrismaClient();
 
-if (process.env.NODE_ENV !== "production") global.prisma = prisma;
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
