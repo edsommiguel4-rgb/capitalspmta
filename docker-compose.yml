@@ -1,48 +1,27 @@
 version: '3.8'
 
 services:
-  db:
-    image: postgres:16-alpine
-    restart: always
-    environment:
-      POSTGRES_USER: panel
-      POSTGRES_PASSWORD: panel
-      POSTGRES_DB: panel
-    volumes:
-      - db_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-
   web:
     build: .
-    depends_on:
-      - db
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgresql://panel:panel@db:5432/panel
-      NEXT_PUBLIC_BASE_URL: http://localhost:3000
-      JWT_SECRET: change-me-very-long
-      MP_ACCESS_TOKEN: ""
-      MP_NOTIFICATION_URL: http://localhost:3000/api/payments/mercadopago/webhook
-      SMTP_HOST: ""
+      DATABASE_URL: ${DATABASE_URL}
+      NEXT_PUBLIC_BASE_URL: https://capitalspmta.up.railway.app
+      JWT_SECRET: ${JWT_SECRET}
+      MP_ACCESS_TOKEN: ${MP_ACCESS_TOKEN}
+      MP_NOTIFICATION_URL: https://capitalspmta.up.railway.app/api/payments/mercadopago/webhook
+      SMTP_HOST: smtp.gmail.com
       SMTP_PORT: "587"
-      SMTP_USER: ""
-      SMTP_PASS: ""
-      SMTP_FROM: "no-reply@seudominio.com"
-      STORE_API_TOKEN: change-me
-      MTA_API_TOKEN: change-me
-    ports:
-      - "3000:3000"
-    command: sh -c "npx wait-port db:5432 && npx prisma generate && npx prisma db push && npx prisma db seed && npm run start"
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      SMTP_FROM: "Capital SP <cronosMTA@gmail.com>"
+      STORE_API_TOKEN: ${STORE_API_TOKEN}
+      MTA_API_TOKEN: ${MTA_API_TOKEN}
+    command: sh -c "npx prisma generate && npx prisma db push && npm run db:seed && npm run start"
 
   worker:
     build: .
-    depends_on:
-      - db
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgresql://panel:panel@db:5432/panel
-    command: sh -c "npx wait-port db:5432 && npx prisma generate && npx prisma db push && npm run worker"
-
-volumes:
-  db_data:
+      DATABASE_URL: ${DATABASE_URL}
+    command: sh -c "npx prisma generate && npx prisma db push && npm run worker"
