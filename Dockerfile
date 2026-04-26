@@ -15,4 +15,4 @@ RUN npm run build
 EXPOSE 8080
 ENV PORT=8080
 
-CMD sh -c "npx prisma db push && npx prisma generate && npm start"
+CMD ["sh", "-c", "npx prisma db push && npm start"]
