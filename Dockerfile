@@ -46,4 +46,4 @@ EXPOSE 3000
 ENV PORT=3000
 
 # 🚀 ENTRYPOINT FINAL (FORÇADO)
-CMD ["sh", "./start.sh"]
+CMD sh -c "npx prisma generate && npx prisma db push && npx next start -p $PORT"
