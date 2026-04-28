@@ -46,4 +46,4 @@ EXPOSE 3000
 ENV PORT=3000
 
 # 🚀 ENTRYPOINT FINAL (FORÇADO)
-CMD ["./start.sh"]
+CMD ["sh", "./start.sh"]
