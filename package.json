@@ -3,11 +3,11 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-  "dev": "next dev",
-  "build": "prisma generate && prisma db push && next build",
-  "start": "next start -p $PORT",
-  "postinstall": "prisma generate"
-},
+    "dev": "next dev",
+    "build": "prisma generate && prisma db push && next build",
+    "start": "npx prisma generate && npx prisma db push && next start -p $PORT",
+    "postinstall": "prisma generate"
+  },
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "prisma": "^5.22.0",
