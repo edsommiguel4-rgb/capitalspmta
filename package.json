@@ -7,7 +7,7 @@
 
     "build": "prisma generate && next build",
 
-    "start": "sh -c 'echo ⏳ DB && for i in $(seq 1 15); do npx prisma db push && break || sleep 3; done && echo ✅ DB OK && npx prisma generate && node prisma/seed.js || true && echo 🚀 START && next start -p $PORT'",
+    "start": "npx prisma db push",
 
     "lint": "next lint",
 
