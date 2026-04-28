@@ -36,18 +36,14 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/package.json ./package.json
 
+# 👇 IMPORTANTE: copiar o start.sh
+COPY --from=builder /app/start.sh ./start.sh
+
+# Permissão de execução
+RUN chmod +x start.sh
+
 EXPOSE 3000
 ENV PORT=3000
 
-# 🚀 START ROBUSTO COM RETRY DE BANCO
-CMD ["sh", "-c", "\
-echo '⏳ Aguardando banco e aplicando schema...' && \
-for i in $(seq 1 15); do \
-  npx prisma db push && break || echo '⏳ Tentando novamente...' && sleep 3; \
-done && \
-echo '✅ Prisma pronto' && \
-npx prisma generate && \
-node prisma/seed.js || true && \
-echo '🚀 Iniciando Next.js' && \
-npx next start -p 3000 \
-"]
+# 🚀 ENTRYPOINT FINAL (FORÇADO)
+CMD ["./start.sh"]
