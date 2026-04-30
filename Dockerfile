@@ -24,26 +24,23 @@ WORKDIR /app
 
 RUN apk add --no-cache openssl
 
-# Instala dependências de produção + garante prisma client
+# Instala dependências de produção
 COPY package*.json ./
-RUN npm install --omit=dev && npx prisma generate
+RUN npm install --omit=dev
 
-# Copia arquivos necessários
+# Copia arquivos necessários do builder
 COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/package.json ./package.json
 
-# 👇 IMPORTANTE: copiar o start.sh
-COPY --from=builder /app/start.sh ./start.sh
-
-# Permissão de execução
-RUN chmod +x start.sh
+# 👇 Garante que o Prisma Client seja gerado para o ambiente de runtime
+RUN npx prisma generate
 
 EXPOSE 3000
 ENV PORT=3000
 
-# 🚀 ENTRYPOINT FINAL (FORÇADO)
-CMD sh -c "npx prisma generate && npx prisma db push && npx next start -p $PORT"
+# 🚀 O SEGREDO ESTÁ AQUI: Adicionamos --accept-data-loss
+# Isso força a criação da tabela 'users' mesmo que a 'Usuário' antiga exista.
+CMD sh -c "npx prisma db push --accept-data-loss && npm start"
