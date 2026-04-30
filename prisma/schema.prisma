@@ -7,80 +7,77 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ======================
-// PADRÃO GLOBAL (ADICIONADO)
-// ======================
-// Evita problemas de casing no PostgreSQL (User vs user)
-/// Isso garante compatibilidade total com Railway
+// ==========================================
+// USUÁRIO E AUTENTICAÇÃO
+// ==========================================
 model User {
   @@map("users")
 
-  id             String   @id @default(cuid())
-  email          String   @unique
-  username       String   @unique
-  passwordHash   String
-  emailVerifiedAt DateTime?
-  emailVerifyToken String?
+  id                   String    @id @default(cuid())
+  email                String    @unique
+  username             String    @unique
+  passwordHash         String
+  emailVerifiedAt      DateTime?
+  emailVerifyToken     String?
   emailVerifyExpiresAt DateTime?
-  phone          String?
-  recoveryEmail  String?
-  googleId       String?  @unique
-  discordId      String?  @unique
-  discordUsername String?
-  avatarKey      String   @default("avatar1")
-  role           String   @default("USER")
-  isDeleted      Boolean  @default(false)
-  bannedUntil    DateTime?
-  whitelistStatus String  @default("PENDING")
-  points         Int      @default(0)
-  lastSeenAt     DateTime @default(now())
+  phone                String?
+  recoveryEmail        String?
+  googleId             String?   @unique
+  discordId            String?   @unique
+  discordUsername      String?
+  avatarKey            String    @default("avatar1")
+  avatarUrl            String?
+  role                 String    @default("USER")
+  isDeleted            Boolean   @default(false)
+  bannedUntil          DateTime?
+  whitelistStatus      String    @default("PENDING")
+  points               Int       @default(0)
+  lastSeenAt           DateTime  @default(now())
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  // Relações do Fórum
+  topics               Topic[]
+  posts                Post[]
 
-  topics         Topic[]
-  posts          Post[]
-  tickets        Ticket[] @relation("TicketAuthor")
-  assignedTickets Ticket[] @relation("TicketAssignee")
-  ticketMsgs     TicketMessage[]
-  ticketParticipants TicketParticipant[]
+  // Relações de Tickets
+  tickets              Ticket[]            @relation("TicketAuthor")
+  assignedTickets      Ticket[]            @relation("TicketAssignee")
+  closedTickets        Ticket[]            @relation("TicketClosedBy")
+  ticketMsgs           TicketMessage[]
+  ticketParticipants   TicketParticipant[]
   ticketParticipantsAdded TicketParticipant[] @relation("TicketParticipantAddedBy")
-  ticketRatingsGiven TicketRating[] @relation("TicketRatingRater")
-  ticketRatingsReceived TicketRating[] @relation("TicketRatingTarget")
-  closedTickets Ticket[] @relation("TicketClosedBy")
-  purchases      Purchase[]
-  auditLogs      AuditLog[] @relation("ActorAuditLogs")
+  ticketRatingsGiven   TicketRating[]      @relation("TicketRatingRater")
+  ticketRatingsReceived TicketRating[]     @relation("TicketRatingTarget")
+  ticketRatingReqGiven    TicketRatingRequirement[] @relation("TicketRatingReqRater")
+  ticketRatingReqReceived TicketRatingRequirement[] @relation("TicketRatingReqTarget")
 
-  userRoles      UserRole[]
-  whitelistApps  WhitelistApplication[]
-  reviewedWhitelists WhitelistApplication[] @relation("WhitelistReviewer")
+  // Sistema de Whitelist e Cargos
+  userRoles            UserRole[]
+  whitelistApps        WhitelistApplication[]
+  reviewedWhitelists   WhitelistApplication[] @relation("WhitelistReviewer")
 
-  convoParts     ConversationParticipant[]
-  sentMessages   DirectMessage[] @relation("DM_Sender")
-  receivedMessages DirectMessage[] @relation("DM_Receiver")
+  // Comunicação e Notificações
+  convoParts           ConversationParticipant[]
+  sentMessages         DirectMessage[] @relation("DM_Sender")
+  receivedMessages     DirectMessage[] @relation("DM_Receiver")
+  notifications        Notification[]
+  passwordResetTokens  PasswordResetToken[]
 
-  userBadges     UserBadge[]
-  gameAccounts   GameAccount[]
+  // Loja e Logs
+  purchases            Purchase[]
+  auditLogs            AuditLog[] @relation("ActorAuditLogs")
+  userBadges           UserBadge[]
+  entitlements         Entitlement[]
 
-  mtaAccessLogs  MtaAccessLog[]
-
-  avatarUrl      String?
-
-  ticketRatingReqGiven     TicketRatingRequirement[] @relation("TicketRatingReqRater")
-  ticketRatingReqReceived  TicketRatingRequirement[] @relation("TicketRatingReqTarget")
-
-  passwordResetTokens PasswordResetToken[]
-
-  entitlements   Entitlement[]
-  notifications  Notification[]
-
-  staffShifts        StaffShift[]
-  staffWeeklyRewards StaffWeeklyReward[]
-
-  adminCasesTarget AdminCase[] @relation("AdminTarget")
-  adminCasesStaff  AdminCase[] @relation("AdminStaff")
-
-  reputation UserReputation?
+  // Integração Game/MTA
+  gameAccounts         GameAccount[]
+  mtaAccessLogs        MtaAccessLog[]
+  staffShifts          StaffShift[]
+  staffWeeklyRewards   StaffWeeklyReward[]
+  adminCasesTarget     AdminCase[] @relation("AdminTarget")
+  adminCasesStaff      AdminCase[] @relation("AdminStaff")
+  reputation           UserReputation?
 
   @@index([role])
   @@index([isDeleted])
@@ -88,3 +85,30 @@ model User {
   @@index([whitelistStatus])
   @@index([lastSeenAt])
 }
+
+// ==========================================
+// EXEMPLOS DE OUTROS MODELOS (RELACIONADOS)
+// Certifique-se de que os modelos abaixo batem com seu código
+// ==========================================
+
+model Topic {
+  id        String   @id @default(cuid())
+  title     String
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+  posts     Post[]
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  content   String
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  topicId   String
+  topic     Topic    @relation(fields: [topicId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+// Adicione aqui as definições de Ticket, Notification, Purchase, etc. 
+// conforme o restante do seu sistema.
